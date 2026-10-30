@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block titulo %}{{ empleado.nombre_completo }} | Nómina{% endblock %}
+{% block contenido %}
+<div class="perfil">
+    <div class="perfil-portada"></div>
+
+    <div class="perfil-cuerpo">
+        <div class="perfil-foto-wrap">
+            <div class="perfil-foto perfil-foto-vacia">{{ empleado.nombre|slice:":1"|upper }}</div>
+        </div>
+
+        {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+        <a href="{% url 'empleado_editar' empleado.pk %}" class="perfil-editar" title="Editar perfil">✏</a>
+        {% endif %}
+
+        <div class="perfil-encabezado">
+            <h1 class="perfil-nombre">{{ empleado.nombre_completo }}</h1>
+            <p class="perfil-titulo">{{ empleado.cargo|default:"Sin cargo asignado" }}{% if empleado.departamento %} en {{ empleado.departamento }}{% endif %}</p>
+        </div>
+
+        {% if empleado.activo %}
+        <div class="perfil-aviso verificado">
+            <div class="aviso-texto">
+                <strong>Empleado activo</strong>
+                <p>Este empleado se encuentra activo en la nómina y con su información al día.</p>
+            </div>
+            <span class="aviso-icono">✔</span>
+        </div>
+        {% else %}
+        <div class="perfil-aviso">
+            <div class="aviso-texto">
+                <strong>{{ empleado.nombre }}, aún no está activo</strong>
+                <p>Este empleado está registrado como inactivo. Revisa su estado en el sistema.</p>
+                {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+                <a href="{% url 'empleado_editar' empleado.pk %}" class="btn btn-mini">Activar</a>
+                {% endif %}
+            </div>
+            <span class="aviso-cerrar">&times;</span>
+        </div>
+        {% endif %}
+
+        <p class="perfil-ubicacion">
+            <a href="#contacto" class="link-contacto">Información de contacto</a>
+        </p>
+
+        <div class="perfil-grid" id="contacto">
+            <div class="perfil-bloque">
+                <h2>Datos del empleado</h2>
+                <ul class="datos">
+                    <li><span class="dato-label">Código / Cédula</span><span class="dato-valor">{{ empleado.cedula }}</span></li>
+                    <li><span class="dato-label">Nombre completo</span><span class="dato-valor">{{ empleado.nombre }}</span></li>
+                    <li><span class="dato-label">Apellido completo</span><span class="dato-valor">{{ empleado.apellido }}</span></li>
+                    <li><span class="dato-label">Sexo</span><span class="dato-valor">{{ empleado.get_sexo_display|default:"—" }}</span></li>
+                    <li><span class="dato-label">Fecha de nacimiento</span><span class="dato-valor">{{ empleado.fecha_nacimiento|date:"d/m/Y"|default:"—" }}</span></li>
+                    <li><span class="dato-label">Vehículo</span><span class="dato-valor">{{ empleado.get_vehiculo_display|default:"—" }}</span></li>
+                    <li><span class="dato-label">¿Tiene licencia?</span><span class="dato-valor">{% if empleado.tiene_licencia %}Sí{% else %}No{% endif %}</span></li>
+                    <li><span class="dato-label">Grado de licencia</span><span class="dato-valor">{{ empleado.get_grado_licencia_display|default:"—" }}</span></li>
+                </ul>
+            </div>
+
+            <div class="perfil-bloque">
+                <h2>Información laboral</h2>
+                <ul class="datos">
+                    <li><span class="dato-label">Cargo</span><span class="dato-valor">{{ empleado.cargo|default:"—" }}</span></li>
+                    <li><span class="dato-label">Departamento</span><span class="dato-valor">{{ empleado.departamento|default:"—" }}</span></li>
+                    <li><span class="dato-label">Tipo de contrato</span><span class="dato-valor">{{ empleado.get_tipo_contrato_display|default:"—" }}</span></li>
+                    <li><span class="dato-label">Fecha de ingreso</span><span class="dato-valor">{{ empleado.fecha_ingreso|date:"d/m/Y"|default:"—" }}</span></li>
+                    <li><span class="dato-label">Fecha de egreso</span><span class="dato-valor">{{ empleado.fecha_egreso|date:"d/m/Y"|default:"—" }}</span></li>
+                    <li><span class="dato-label">Salario</span><span class="dato-valor">{% if empleado.salario %}${{ empleado.salario }}{% else %}—{% endif %}</span></li>
+                    <li><span class="dato-label">Salario mínimo</span><span class="dato-valor">{% if empleado.salario_minimo %}${{ empleado.salario_minimo }}{% else %}—{% endif %}</span></li>
+                    <li><span class="dato-label">Estado</span><span class="dato-valor">{% if empleado.activo %}Activo{% else %}Inactivo{% endif %}</span></li>
+                </ul>
+            </div>
+
+            <div class="perfil-bloque">
+                <h2>Información de contacto</h2>
+                <ul class="datos">
+                    <li><span class="dato-label">Correo</span><span class="dato-valor">{{ empleado.email|default:"—" }}</span></li>
+                    <li><span class="dato-label">Teléfono</span><span class="dato-valor">{{ empleado.telefono|default:"—" }}</span></li>
+                    <li><span class="dato-label">Dirección</span><span class="dato-valor">{{ empleado.direccion|default:"—" }}</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="perfil-bloque">
+            <h2>Horas de trabajo</h2>
+            <p class="perfil-ubicacion">
+                Total acumulado: <strong>{{ horas_total }}</strong> h trabajadas &middot;
+                <strong>{{ horas_extra_total }}</strong> h extra &middot;
+                {{ horas_registros }} registro{{ horas_registros|pluralize:"s" }}
+            </p>
+            {% if horas_recientes %}
+            <table class="tabla tabla-compacta">
+                <thead>
+                    <tr><th>Fecha</th><th>Horas</th><th>Extra</th><th>Descripción</th></tr>
+                </thead>
+                <tbody>
+                    {% for r in horas_recientes %}
+                    <tr>
+                        <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                        <td>{{ r.horas }}</td>
+                        <td>{{ r.horas_extra }}</td>
+                        <td>{{ r.descripcion|default:"—" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <a href="{% url 'horas_lista' %}?q={{ empleado.cedula }}" class="btn btn-secundario mt-1">Ver todas sus horas</a>
+            {% else %}
+            <p class="vacio">Sin registros de horas.</p>
+            {% endif %}
+        </div>
+
+        {% if empleado.notas %}
+        <div class="perfil-bloque">
+            <h2>Notas</h2>
+            <p class="perfil-notas">{{ empleado.notas|linebreaksbr }}</p>
+        </div>
+        {% endif %}
+
+        <div class="perfil-acciones">
+            {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+            <a href="{% url 'empleado_editar' empleado.pk %}" class="btn btn-primario">Editar</a>
+            {% endif %}
+            {% if user_rol == 'admin' %}
+            <a href="{% url 'empleado_eliminar' empleado.pk %}" class="btn btn-peligro">Eliminar</a>
+            {% endif %}
+            <a href="{% url 'empleado_lista' %}" class="btn btn-secundario">Volver al listado</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

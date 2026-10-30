@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}{{ titulo }} | Nómina{% endblock %}
+{% block contenido %}
+<section class="panel">
+    <div class="panel-cabecera">
+        <h1>{{ titulo }}</h1>
+        <a href="{% url 'empleado_lista' %}" class="btn btn-texto">&larr; Volver al listado</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-empleado">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+        <div class="mensaje error">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="grid-form">
+            {% for field in form %}
+            <div class="campo {% if field.name == 'notas' or field.name == 'direccion' %}campo-ancho{% endif %} {% if field.name == 'activo' %}campo-check{% endif %}">
+                {% if field.name == 'activo' %}
+                    <label class="label-check">{{ field }} <span>{{ field.label }}</span></label>
+                {% else %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                {% if field.help_text %}<small class="ayuda">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<small class="error-campo">{{ error }}</small>{% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="acciones-form">
+            <button type="submit" class="btn btn-primario">Guardar</button>
+            <a href="{% url 'empleado_lista' %}" class="btn btn-secundario">Cancelar</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

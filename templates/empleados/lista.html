@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load empleados_extras %}
+{% block titulo %}Empleados | Nómina{% endblock %}
+{% block contenido %}
+<section class="panel-cabecera cabecera-pagina">
+    <h1>Empleados</h1>
+    {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+    <a href="{% url 'empleado_crear' %}" class="btn btn-primario">+ Nuevo empleado</a>
+    {% endif %}
+</section>
+
+<form method="get" class="barra-busqueda">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por código/cédula, nombre, cargo o departamento..." class="form-input">
+    <input type="hidden" name="orden" value="{{ orden }}">
+    <input type="hidden" name="dir" value="{{ dir }}">
+    <button type="submit" class="btn btn-secundario">Buscar</button>
+    {% if q %}<a href="{% url 'empleado_lista' %}" class="btn btn-texto">Limpiar</a>{% endif %}
+    <span class="resultados">{{ empleados|length }} resultado{{ empleados|length|pluralize:"s" }}</span>
+</form>
+
+<div class="tabla-wrap">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th><a href="{% url_orden 'cedula' orden dir q %}">Código / Cédula <span class="ord">{% indicador_orden 'cedula' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'nombre' orden dir q %}">Nombre <span class="ord">{% indicador_orden 'nombre' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'cargo' orden dir q %}">Cargo <span class="ord">{% indicador_orden 'cargo' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'departamento' orden dir q %}">Departamento <span class="ord">{% indicador_orden 'departamento' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'salario' orden dir q %}">Salario <span class="ord">{% indicador_orden 'salario' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'activo' orden dir q %}">Estado <span class="ord">{% indicador_orden 'activo' orden dir %}</span></a></th>
+                <th class="col-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for e in empleados %}
+            <tr>
+                <td>{{ e.cedula }}</td>
+                <td>
+                    <div class="celda-empleado">
+                        <span class="avatar-mini">{{ e.nombre|slice:":1"|upper }}</span>
+                        <span>{{ e.nombre_completo }}</span>
+                    </div>
+                </td>
+                <td>{{ e.cargo|default:"—" }}</td>
+                <td>{{ e.departamento|default:"—" }}</td>
+                <td>{% if e.salario %}${{ e.salario }}{% else %}—{% endif %}</td>
+                <td>
+                    {% if e.activo %}<span class="badge activo">Activo</span>
+                    {% else %}<span class="badge inactivo">Inactivo</span>{% endif %}
+                </td>
+                <td class="col-acciones">
+                    <a href="{% url 'empleado_detalle' e.pk %}" class="accion ver" title="Ver">👁 Ver</a>
+                    {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+                    <a href="{% url 'empleado_editar' e.pk %}" class="accion editar" title="Editar">✏ Editar</a>
+                    {% endif %}
+                    {% if user_rol == 'admin' %}
+                    <a href="{% url 'empleado_eliminar' e.pk %}" class="accion eliminar" title="Eliminar">🗑 Eliminar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="vacio-tabla">
+                    {% if q %}No se encontraron empleados para "{{ q }}".{% else %}No hay empleados registrados.{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

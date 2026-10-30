@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block titulo %}Iniciar sesión{% endblock %}
+{% block contenido %}
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="login-logo">N</div>
+        <h1>Bienvenido</h1>
+        <p class="login-sub">Ingresa tus credenciales para continuar</p>
+
+        {% if form.errors %}
+        <div class="mensaje error">Usuario o contraseña incorrectos.</div>
+        {% endif %}
+        {% if next and user.is_authenticated %}
+        <div class="mensaje error">Tu cuenta no tiene acceso a esa página.</div>
+        {% endif %}
+
+        <form method="post" class="login-form">
+            {% csrf_token %}
+            <label for="id_username">Usuario</label>
+            <input type="text" name="username" id="id_username" class="form-input" placeholder="Usuario" autofocus required>
+            <label for="id_password">Contraseña</label>
+            <input type="password" name="password" id="id_password" class="form-input" placeholder="Contraseña" required>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn btn-primario btn-block">Ingresar</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

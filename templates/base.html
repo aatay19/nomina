@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Nómina{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}">
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <header class="navbar">
+        <div class="navbar-inner">
+            <a class="marca" href="{% url 'home' %}">
+                <span class="marca-logo">N</span> Nómina
+            </a>
+            <nav class="nav-links">
+                <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}activo{% endif %}">Inicio</a>
+                <a href="{% url 'empleado_lista' %}" class="{% if 'empleado' in request.resolver_match.url_name %}activo{% endif %}">Empleados</a>
+                <a href="{% url 'horas_lista' %}" class="{% if 'horas' in request.resolver_match.url_name %}activo{% endif %}">Horas</a>
+                {% if user_rol == 'admin' %}
+                <a href="{% url 'usuario_lista' %}" class="{% if 'usuario' in request.resolver_match.url_name %}activo{% endif %}">Usuarios</a>
+                {% endif %}
+            </nav>
+            <div class="nav-user">
+                <span class="avatar-mini">{{ user.username|slice:":1"|upper }}</span>
+                <span class="nav-username">{{ user.get_full_name|default:user.username }}</span>
+                {% if user_rol_label %}<span class="badge-rol">{{ user_rol_label }}</span>{% endif %}
+                <a class="btn-sesion" href="{% url 'logout' %}">Salir</a>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="contenedor {% if not user.is_authenticated %}sin-nav{% endif %}">
+        {% if messages %}
+        <div class="mensajes">
+            {% for message in messages %}
+            <div class="mensaje {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer class="pie">
+        <p>Nómina &middot; Sistema de gestión de empleados</p>
+    </footer>
+</body>
+</html>

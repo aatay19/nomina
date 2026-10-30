@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Inicio | Nómina{% endblock %}
+{% block contenido %}
+<section class="bienvenida">
+    <h1>Hola, {{ user.get_full_name|default:user.username }} 👋</h1>
+    <p>Bienvenido al sistema de gestión de nómina. Aquí tienes un resumen general.</p>
+    <a href="{% url 'empleado_lista' %}" class="btn btn-primario">Ver empleados</a>
+</section>
+
+<section class="tarjetas">
+    <div class="tarjeta-stat">
+        <span class="stat-num">{{ total }}</span>
+        <span class="stat-label">Empleados totales</span>
+    </div>
+    <div class="tarjeta-stat verde">
+        <span class="stat-num">{{ activos }}</span>
+        <span class="stat-label">Activos</span>
+    </div>
+    <div class="tarjeta-stat rojo">
+        <span class="stat-num">{{ inactivos }}</span>
+        <span class="stat-label">Inactivos</span>
+    </div>
+</section>
+
+<section class="panel">
+    <div class="panel-cabecera">
+        <h2>Empleados recientes</h2>
+        {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+        <a href="{% url 'empleado_crear' %}" class="btn btn-secundario">+ Nuevo empleado</a>
+        {% endif %}
+    </div>
+    {% if recientes %}
+    <ul class="lista-recientes">
+        {% for e in recientes %}
+        <li>
+            <a href="{% url 'empleado_detalle' e.pk %}" class="reciente-item">
+                <span class="reciente-avatar">{{ e.nombre|slice:":1"|upper }}</span>
+                <span class="reciente-info">
+                    <strong>{{ e.nombre_completo }}</strong>
+                    <small>{{ e.cargo|default:"Sin cargo" }}{% if e.departamento %} &middot; {{ e.departamento }}{% endif %}</small>
+                </span>
+                <span class="reciente-cedula">{{ e.cedula }}</span>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="vacio">Aún no hay empleados registrados. <a href="{% url 'empleado_crear' %}">Crea el primero</a>.</p>
+    {% endif %}
+</section>
+{% endblock %}

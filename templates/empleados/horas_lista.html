@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% load empleados_extras %}
+{% block titulo %}Horas de trabajo | Nómina{% endblock %}
+{% block contenido %}
+<section class="panel-cabecera cabecera-pagina">
+    <h1>Horas de trabajo</h1>
+    {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+    <a href="{% url 'horas_crear' %}" class="btn btn-primario">+ Nuevo registro</a>
+    {% endif %}
+</section>
+
+<section class="tarjetas">
+    <div class="tarjeta-stat">
+        <span class="stat-num">{{ total_horas }}</span>
+        <span class="stat-label">Horas trabajadas</span>
+    </div>
+    <div class="tarjeta-stat verde">
+        <span class="stat-num">{{ total_extra }}</span>
+        <span class="stat-label">Horas extra</span>
+    </div>
+    <div class="tarjeta-stat">
+        <span class="stat-num">{{ gran_total }}</span>
+        <span class="stat-label">Total general</span>
+    </div>
+</section>
+
+<form method="get" class="barra-busqueda">
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por código/cédula, nombre o descripción..." class="form-input">
+    <input type="hidden" name="orden" value="{{ orden }}">
+    <input type="hidden" name="dir" value="{{ dir }}">
+    <button type="submit" class="btn btn-secundario">Buscar</button>
+    {% if q %}<a href="{% url 'horas_lista' %}" class="btn btn-texto">Limpiar</a>{% endif %}
+    <span class="resultados">{{ registros|length }} registro{{ registros|length|pluralize:"s" }}</span>
+</form>
+
+<div class="tabla-wrap">
+    <table class="tabla">
+        <thead>
+            <tr>
+                <th><a href="{% url_orden 'empleado' orden dir q %}">Código / Cédula <span class="ord">{% indicador_orden 'empleado' orden dir %}</span></a></th>
+                <th>Empleado</th>
+                <th><a href="{% url_orden 'fecha' orden dir q %}">Fecha <span class="ord">{% indicador_orden 'fecha' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'horas' orden dir q %}">Horas <span class="ord">{% indicador_orden 'horas' orden dir %}</span></a></th>
+                <th><a href="{% url_orden 'horas_extra' orden dir q %}">Extra <span class="ord">{% indicador_orden 'horas_extra' orden dir %}</span></a></th>
+                <th>Total</th>
+                <th>Descripción</th>
+                <th class="col-acciones">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in registros %}
+            <tr>
+                <td>{{ r.empleado.cedula }}</td>
+                <td>
+                    <div class="celda-empleado">
+                        <span class="avatar-mini">{{ r.empleado.nombre|slice:":1"|upper }}</span>
+                        <span>{{ r.empleado.nombre_completo }}</span>
+                    </div>
+                </td>
+                <td>{{ r.fecha|date:"d/m/Y" }}</td>
+                <td>{{ r.horas }}</td>
+                <td>{{ r.horas_extra }}</td>
+                <td><strong>{{ r.total_horas }}</strong></td>
+                <td>{{ r.descripcion|default:"—" }}</td>
+                <td class="col-acciones">
+                    {% if user_rol == 'admin' or user_rol == 'gerencia' %}
+                    <a href="{% url 'horas_editar' r.pk %}" class="accion editar" title="Editar">✏ Editar</a>
+                    {% endif %}
+                    {% if user_rol == 'admin' %}
+                    <a href="{% url 'horas_eliminar' r.pk %}" class="accion eliminar" title="Eliminar">🗑 Eliminar</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="vacio-tabla">
+                    {% if q %}No se encontraron registros para "{{ q }}".{% else %}No hay registros de horas todavía.{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
